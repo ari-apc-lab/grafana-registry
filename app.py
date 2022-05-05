@@ -58,6 +58,7 @@ def create_dashboards():
     if not folder_id:
         return "Could not create user folder\n", 500
 
+    #  Register all dashboard templates available in the templates folder
     for template_file in listdir(path.dirname(path.abspath(__file__)) + '/templates'):
         template = env.get_template(template_file)
 
@@ -91,6 +92,76 @@ def create_dashboards():
         post(gf_endpoint + '/api/dashboards/id/' + dashboard_data["id"] + '/permissions',
              auth=basicAuth(gf_admin_user, gf_admin_pw),
              json={"items": [{"userId": user_id, "permission": 1}]})
+
+    return "Dashboards added\n", 200
+
+
+@app.route('/dashboards/<template_type>', methods=['POST'])
+def create_dashboard(template_type):
+    try:
+        user_info = _token_info(_get_token(request))
+    except Exception as e:
+        return str(e), 500
+    if not user_info:
+        return "Unauthorized access\n", 401
+
+    user_email = user_info['email']
+    user_name = user_info['name'] if 'name' in user_info else user_email.split('@')[0]
+    json_data = request.json
+
+    if 'deployment_label' in json_data and 'monitoring_id' in json_data:
+        deployment_label = json_data['deployment_label']
+        monitoring_id = json_data['monitoring_id']
+    else:
+        return "Request must include deployment_label and monitoring_id\n", 400
+
+    if not _check_user_deployment_availability(user_email, monitoring_id):
+        return "Monitoring ID already belongs to a different user\n", 403
+
+    user_id = _register_user(user_email, user_name)
+    if user_id is None:
+        return "Could not register user in Grafana\n", 500
+
+    folder_id = _create_folder(user_email, user_id)
+    if not folder_id:
+        return "Could not create user folder\n", 500
+
+    #  Register a dashboard template for given template_type
+    template_file = template_type + '.json.j2'
+    if template_file not in listdir(path.dirname(path.abspath(__file__)) + '/templates'):
+        return "Template type {} not supported\n".format(template_type), 400
+    template = env.get_template(template_file)
+
+    # Create of the dashboard with a dummy dashboard uid and no url in the links
+    dashboard = template.render(deployment_label=deployment_label,
+                                monitoring_id=monitoring_id,
+                                dashboard_url="/",
+                                dashboard_uid="null",
+                                folder_id=folder_id)
+    r = post(gf_endpoint + '/api/dashboards/db',
+             auth=basicAuth(gf_admin_user, gf_admin_pw),
+             json=loads(dashboard))
+    r_json = r.json()
+    dashboard_data = {
+        "uid": r_json['uid'],
+        "url": r_json['url'],
+        "id": str(r_json['id'])
+    }
+
+    # Update the dashboard to include the dashboard url in the links and real uid
+    dashboard = template.render(deployment_label=deployment_label,
+                                monitoring_id=monitoring_id,
+                                dashboard_url=dashboard_data["url"],
+                                dashboard_uid=dashboard_data["uid"],
+                                folder_id=folder_id)
+    post(gf_endpoint + '/api/dashboards/db',
+         auth=basicAuth(gf_admin_user, gf_admin_pw),
+         json=loads(dashboard))
+
+    # Set the permissions
+    post(gf_endpoint + '/api/dashboards/id/' + dashboard_data["id"] + '/permissions',
+         auth=basicAuth(gf_admin_user, gf_admin_pw),
+         json={"items": [{"userId": user_id, "permission": 1}]})
 
     return "Dashboards added\n", 200
 
