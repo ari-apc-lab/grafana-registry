@@ -16,8 +16,8 @@
     "editable": false,
     "gnetId": null,
     "graphTooltip": 0,
-    "id": 3,
-    "iteration": 1666181535666,
+    "id": 16,
+    "iteration": 1667906525662,
     "links": [],
     "panels": [
     {
@@ -79,11 +79,23 @@
                 "value": 174
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Application"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 364
+              }
+            ]
           }
         ]
       },
       "gridPos": {
-        "h": 7,
+        "h": 6,
         "w": 13,
         "x": 5,
         "y": 0
@@ -273,7 +285,10 @@
         {
           "id": "organize",
           "options": {
-            "excludeByName": {},
+            "excludeByName": {
+              "HPC": true,
+              "HPC User": true
+            },
             "indexByName": {},
             "renameByName": {
               "Application": "",
@@ -700,10 +715,10 @@
         ]
       },
       "gridPos": {
-        "h": 5,
+        "h": 6,
         "w": 24,
         "x": 0,
-        "y": 7
+        "y": 6
       },
       "id": 3,
       "links": [],
@@ -712,8 +727,8 @@
         "showHeader": true,
         "sortBy": [
           {
-            "desc": true,
-            "displayName": "App Execution"
+            "desc": false,
+            "displayName": "Submission Time"
           }
         ]
       },
@@ -1249,10 +1264,11 @@
       "yaxes": [
         {
           "$$hashKey": "object:296",
+          "decimals": null,
           "format": "dtdhms",
           "label": "",
           "logBase": 1,
-          "max": "1000000",
+          "max": null,
           "min": "0",
           "show": true
         },
@@ -1542,8 +1558,8 @@
         "allValue": null,
         "current": {
           "selected": false,
-          "text": "test_pycompss_covid19_cross_platform",
-          "value": "test_pycompss_covid19_cross_platform"
+          "text": "covid19_cross_platform_instance1",
+          "value": "covid19_cross_platform_instance1"
         },
         "datasource": "Prometheus",
         "definition": "label_values(slurm_job_state{user=\"$user\"},deployment_id)",
@@ -1569,8 +1585,8 @@
         "allValue": null,
         "current": {
           "selected": false,
-          "text": "1550349",
-          "value": "1550349"
+          "text": "1596549",
+          "value": "1596549"
         },
         "datasource": "Prometheus",
         "definition": "label_values(slurm_job_state{deployment_id=\"$deployment_id\"}, job_id)",
@@ -1609,7 +1625,7 @@
         "name": "submission_time",
         "options": [
           {
-            "selected": true,
+            "selected": false,
             "text": "2022-10-18 17:04:02",
             "value": "2022-10-18 17:04:02"
           }
